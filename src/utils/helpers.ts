@@ -1,3 +1,6 @@
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
 type Constructor<T> = new (...args: unknown[]) => T;
 
 /* Check whether array is of the specified type */
@@ -69,3 +72,19 @@ export const realTasksFilter = (input: string): boolean => {
     !doNothingRegex.test(input)
   );
 };
+
+
+export const isUserSubscribed=async (userId:string):Promise<boolean> =>{
+
+  try{
+    const response = await fetch(`/api/user/${userId}/subscription-status`);
+    if(response.status!=200){
+      return false;
+    }
+    const data = await response.json();
+    return data.isSubscribed;
+  }catch(e){
+    console.error("Something went wrong",e);
+    return false;
+  }
+}

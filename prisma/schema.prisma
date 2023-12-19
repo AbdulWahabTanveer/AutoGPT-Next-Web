@@ -47,6 +47,11 @@ model User {
   role           String?
   subscriptionId String?   @db.Text
   customerId     String?   @db.Text
+  stripeCustomerId      String?  @unique
+  stripeSubscriptionId  String?  @unique
+  subscriptionStatus    String?
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
 
   createDate DateTime @default(now())
 

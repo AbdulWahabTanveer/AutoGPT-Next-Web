@@ -2,18 +2,21 @@ import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   * Extend the User model if you have added additional properties
    */
-  interface Session {
-    user: {
-      id: string;
-    } & DefaultSession["user"] &
-      User;
+  interface User extends DefaultSession["user"] {
+    id: string;
+    role?: string;
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: string;
+    image?: string;
   }
 
-  interface User {
-    role?: string;
-    subscriptionId: string | undefined;
-    image?: string;
+  /**
+   * Extend the Session model to include the extended User model
+   */
+  interface Session {
+    user?: User;
   }
 }

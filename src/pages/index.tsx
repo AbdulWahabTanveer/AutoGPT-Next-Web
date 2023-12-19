@@ -32,6 +32,8 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useGuestMode } from "../hooks/useGuestMode";
 import { authEnabled } from "../utils/env-helper";
+import { SubscriptionDialog } from "../components/SubscriptionDialog";
+import { isUserSubscribed } from "../utils/helpers";
 
 const Home: NextPage = () => {
   const { t, i18n } = useTranslation();
@@ -55,13 +57,15 @@ const Home: NextPage = () => {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showSorryDialog, setShowSorryDialog] = React.useState(false);
   const [showSignInDialog, setShowSignInDialog] = React.useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] =
+    React.useState(false);
   const [hasSaved, setHasSaved] = useState(false);
   const [showWeChatPayDialog, setShowWeChatPayDialog] = useState(false);
   const [showQQDialog, setShowQQDialog] = useState(false);
   const [customLanguage, setCustomLanguage] = useState<string>(i18n.language);
   const settingsModel = useSettings();
   const { isValidGuest, isGuestMode } = useGuestMode(
-    settingsModel.settings.customGuestKey
+    settingsModel.settings.customGuestKey,
   );
 
   const router = useRouter();
@@ -109,13 +113,18 @@ const Home: NextPage = () => {
   const disableDeployAgent =
     agent != null || isEmptyOrBlank(name) || isEmptyOrBlank(goalInput);
 
-  const handleNewGoal = () => {
+  const handleNewGoal = async () => {
     if (
       session === null &&
-      process.env.NODE_ENV === "production" &&
+      // process.env.NODE_ENV === "production" &&
       authEnabled
     ) {
       setShowSignInDialog(true);
+      return;
+    }
+    const isSubscribed = await isUserSubscribed(session?.user?.id);
+    if (!isSubscribed) {
+      setShowSubscriptionDialog(true);
       return;
     }
 
@@ -129,7 +138,7 @@ const Home: NextPage = () => {
       agentMode,
       customLanguage,
       { isValidGuest, isGuestMode },
-      session ?? undefined
+      session ?? undefined,
     );
     setAgent(agent);
     setHasSaved(false);
@@ -151,7 +160,7 @@ const Home: NextPage = () => {
   const handleKeyPress = (
     e:
       | React.KeyboardEvent<HTMLInputElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
     // Only Enter is pressed, execute the function
     if (e.ctrlKey && e.key === "Enter" && !disableDeployAgent) {
@@ -228,6 +237,10 @@ const Home: NextPage = () => {
       <SignInDialog
         show={showSignInDialog}
         close={() => setShowSignInDialog(false)}
+      />
+      <SubscriptionDialog
+        show={showSubscriptionDialog}
+        close={() => setShowSubscriptionDialog(false)}
       />
       <WeChatPayDialog
         show={showWeChatPayDialog}
